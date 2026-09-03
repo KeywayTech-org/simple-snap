@@ -24,7 +24,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
     try {
       const response = await fetch(result.outputImageUrl);
       const blob = await response.blob();
-      const filename = `simplesnap_${Date.now()}.png`;
+      const filename = `simple-snap_${Date.now()}.png`;
       const file = new File([blob], filename, { type: 'image/png' });
 
       // Mobile native share (saves directly to Photos on iOS & Android)
@@ -59,7 +59,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
       // Fallback
       const a = document.createElement('a');
       a.href = result.outputImageUrl;
-      a.download = `simplesnap_${Date.now()}.png`;
+      a.download = `simple-snap_${Date.now()}.png`;
       a.target = '_blank';
       a.click();
       setDownloadSuccess(true);
