@@ -14,19 +14,19 @@ export const ZenHeader: React.FC<ZenHeaderProps> = ({ currentStep, onReset }) =>
       {/* Brand logo in Chinese Calligraphic Serif */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
         <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded border border-stone-800 text-stone-900 font-serif font-bold text-xs sm:text-sm bg-stone-100/50 shadow-2xs shrink-0 select-none">
-          留
+          撕
         </div>
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="font-serif text-sm sm:text-base md:text-lg font-bold tracking-wider sm:tracking-widest text-stone-900 whitespace-nowrap truncate">
-              留白 · 艺术画报
+              撕片 · SimpleSnap
             </span>
             <span className="stamp-seal text-[9px] sm:text-[10px] px-1 py-0.5 leading-none font-serif shrink-0 select-none">
               雅集
             </span>
           </div>
           <span className="font-serif text-[10px] text-stone-500 tracking-wider whitespace-nowrap hidden sm:inline">
-            Zine Studio · 影像重构
+            一撕一换 · 热门风格快易
           </span>
         </div>
       </div>

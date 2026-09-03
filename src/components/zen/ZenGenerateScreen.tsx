@@ -24,7 +24,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
     try {
       const response = await fetch(result.outputImageUrl);
       const blob = await response.blob();
-      const filename = `zine_art_${Date.now()}.png`;
+      const filename = `simplesnap_${Date.now()}.png`;
       const file = new File([blob], filename, { type: 'image/png' });
 
       // Mobile native share (saves directly to Photos on iOS & Android)
@@ -35,7 +35,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
       ) {
         await navigator.share({
           files: [file],
-          title: result.title || '艺术海报画报',
+          title: result.title || '撕片 SimpleSnap',
           text: '保存至相册',
         });
         setDownloadSuccess(true);
@@ -59,7 +59,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
       // Fallback
       const a = document.createElement('a');
       a.href = result.outputImageUrl;
-      a.download = `zine_art_${Date.now()}.png`;
+      a.download = `simplesnap_${Date.now()}.png`;
       a.target = '_blank';
       a.click();
       setDownloadSuccess(true);

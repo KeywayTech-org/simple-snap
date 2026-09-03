@@ -1,6 +1,6 @@
 {
-  "name": "AI P图 - Zine Studio",
-  "description": "中式留白审美与艺术海报风格摄影重塑，基于大模型视觉感知与 scenes-gathered-zine-v1-3 艺术工坊，三屏极简流转，支持相册一键保存",
+  "name": "撕片 SimpleSnap",
+  "description": "上传一张照片，快速换上热门风格。首个风格：拾景纸刊 scenes-gathered-zine-v1-3（真景为锚、插画成场、色彩成结构、撕纸成界），基于 qwen3.8-flash 视觉解读与 gpt-image-2 参考图生图",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_AI_API"]
 }
