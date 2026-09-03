@@ -1,0 +1,6 @@
+{
+  "name": "AI P图 - Zine Studio",
+  "description": "中式留白审美与艺术海报风格摄影重塑，基于大模型视觉感知与 scenes-gathered-zine-v1-3 艺术工坊，三屏极简流转，支持相册一键保存",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

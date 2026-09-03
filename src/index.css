@@ -1,0 +1,77 @@
+/* 字体样式必须排在最前；直接引包内 css，绕过 style.css 的嵌套 @import 解析问题 */
+@import "lxgw-wenkai-screen-webfont/lxgwwenkaiscreen.css";
+@import "tailwindcss";
+
+/* 设计令牌：宣纸 · 墨 · 朱砂 */
+@theme {
+  /* 中文正文与标题统一使用霞鹜文楷，系统宋体兜底 */
+  --font-serif: "LXGW WenKai Screen", "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+
+  /* 艺术标题：英文衬线优先，中文回退到文楷 */
+  --font-art: "Playfair Display", "LXGW WenKai Screen", "Noto Serif SC", "Songti SC", serif;
+
+  --color-paper: #f7f5f0;
+  --color-ink: #1c1917;
+  --color-cinnabar: #9b2226;
+}
+
+@layer base {
+  *, ::before, ::after {
+    box-sizing: border-box;
+  }
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  body {
+    font-family: var(--font-serif);
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    caret-color: var(--color-cinnabar);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 键盘可达性：焦点环统一为朱砂色 */
+  :focus-visible {
+    outline: 1.5px solid var(--color-cinnabar);
+    outline-offset: 2px;
+  }
+}
+
+/* 艺术海报与宣纸质感 */
+.font-serif-art {
+  font-family: var(--font-art);
+}
+
+.font-chinese-serif {
+  font-family: var(--font-serif);
+}
+
+/* 宣纸微纹理 */
+.canvas-paper {
+  background-color: var(--color-paper);
+  background-image: radial-gradient(rgba(28, 25, 23, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* 中式朱砂印章样式 */
+.stamp-seal {
+  writing-mode: vertical-rl;
+  border: 1.5px solid var(--color-cinnabar);
+  color: var(--color-cinnabar);
+  border-radius: 2px;
+  letter-spacing: 0.2em;
+}
+
+/* 极简无滚动条 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
