@@ -50,6 +50,7 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
   hasImage,
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const selectedPreset = STYLE_PRESETS.find((p) => p.id === selectedPresetId);
 
   return (
     <div className="w-full flex flex-col gap-4 bg-stone-900/60 border border-stone-800/80 rounded-2xl p-4 sm:p-5">
@@ -58,7 +59,7 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-amber-400"></span>
           <span className="text-xs font-semibold text-stone-200 uppercase tracking-wide">
-            scenes-gathered-zine-v1-3 风格预设
+            风格预设 · {selectedPreset?.tag ?? '自由创作'}
           </span>
         </div>
         <span className="text-[11px] text-amber-400/90 font-mono bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">

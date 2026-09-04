@@ -52,6 +52,7 @@ export const StepStyle: React.FC<StepStyleProps> = ({
   onStartRemix,
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const selectedPreset = STYLE_PRESETS.find((p) => p.id === selectedPresetId);
 
   return (
     <div className="w-full max-w-2xl mx-auto h-full flex flex-col justify-between py-1">
@@ -62,7 +63,7 @@ export const StepStyle: React.FC<StepStyleProps> = ({
             <Sparkles className="w-3 h-3" /> 步骤 02 · 艺术工坊设定
           </span>
           <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-            <ShinyText text="选择 scenes-gathered-zine-v1-3 风格" speed={3} />
+            <ShinyText text={`选择风格 · ${selectedPreset?.name ?? '自由创作'}`} speed={3} />
           </h2>
           <p className="text-xs text-stone-400">
             大模型将依据选定艺术调性与原片构图，调度 gpt-image-2

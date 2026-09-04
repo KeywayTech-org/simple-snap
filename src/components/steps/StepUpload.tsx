@@ -114,7 +114,7 @@ export const StepUpload: React.FC<StepUploadProps> = ({
           <ShinyText text="选择需要 AI P图 的照片" speed={3} />
         </h2>
         <p className="text-xs text-stone-400 max-w-sm mx-auto mt-0.5">
-          支持拍摄日常、人像、街景或静物，交给 scenes-gathered-zine-v1-3 艺术再造
+          支持拍摄日常、人像、街景或静物，交给所选艺术风格再造
         </p>
       </div>
 

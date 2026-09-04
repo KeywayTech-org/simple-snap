@@ -8,7 +8,19 @@ export const STYLE_PRESETS: StylePreset[] = [
     tag: 'scenes-gathered-zine-v1-3',
     iconName: 'BookOpen',
   },
+  {
+    id: 'gc-minimal-zine-poster-v0-3',
+    name: '诗性纸刊',
+    description: '诗性纸面 · 大量留白 · 一个小型视觉事件 · 实验排印 · 一处高饱和强调：照片化为安静的纸张极简海报',
+    tag: 'gc-minimal-zine-poster-v0-3',
+    iconName: 'Layers',
+  },
 ];
+
+// 按风格 id 取展示名；未识别的 id 原样回退
+export function getPresetDisplayName(id?: string): string {
+  return STYLE_PRESETS.find((p) => p.id === id)?.name ?? id ?? 'AI 风格海报';
+}
 
 export const SAMPLE_IMAGES: SampleImage[] = [
   {

@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
+import { resolveStyleSkill } from './server/skills';
 
 // override: 机器上存在同名全局环境变量（其他项目的 LLM_*），项目 .env 必须优先
 dotenv.config({ override: true });
@@ -22,56 +23,6 @@ const IMAGE_API_KEY = process.env.IMAGE_API_KEY || '';
 const IMAGE_MODEL = process.env.IMAGE_MODEL || 'gpt-image-2';
 const IMAGE_QUALITY = process.env.IMAGE_QUALITY || 'medium';
 
-// scenes-gathered-zine-v1-3 Skill 定义：解读模型的 system prompt
-// 提炼自 skill 原文（真景为锚、插画成场、色彩成结构、撕纸成界、纸面会呼吸）
-const SCENES_GATHERED_ZINE_SKILL_PROMPT = `
-You are the art director executing the skill "scenes-gathered-zine-v1-3" (拾景纸刊): transform the supplied photo into a tactile minimal paper-collage zine poster that anchors truthful photography inside a spacious, source-derived abstract illustration field.
-
-## Signature (must all be present)
-真景为锚 (truthful photo anchor) · 插画成场 (illustration as a large field) · 色彩成结构 (one hue as compositional structure) · 撕纸成界 (hand-torn paper boundary) · 纸面会呼吸 (breathing negative space).
-
-## Decision priority (resolve conflicts in this order)
-1. Preserve the scene's identity and key spatial relationships.
-2. Keep the photographic portion truthful (natural color, texture, perspective).
-3. Simplify complex organic/repetitive detail into a few large legible masses.
-4. Make the illustration a large designed field, never a small peripheral doodle or a full-scene tracing.
-5. Build photo, illustration, and the added hue on the same source-derived compositional skeleton.
-6. The added hue changes balance, movement, figure–ground, or meaning — never a detached decoration.
-7. Preserve substantial quiet space inside and around the illustration.
-8. Preserve a visible hand-torn fibrous photo edge at the primary photo-to-paper handoff.
-9. Add exactly one restrained micro-text element without weakening the hierarchy.
-
-## Read the photograph first (Scene Card)
-Identify: 1–2 core subjects; 2–3 supporting elements; spatial invariants (horizon, positions, scale, facing, silhouette); dominant gesture (strongest line/direction); visual-weight map; native color atmosphere; 1–2 source-shape candidates that can continue across photo, illustration, and color; natural quiet areas; the semantic minimum that still identifies THIS scene.
-
-## Compile the generation prompt as four compact paragraphs (decisive, visual, English)
-1. Canvas & attention geometry: vertical poster ratio, paper surface, flat scanned look, photo/illustration field shares (photo anchor roughly 25–60%), focal area, quiet field, eye path, reserved text area.
-2. Scene fidelity: core subjects, spatial invariants, what remains photographic.
-3. Illustration field, chromatic structure, torn edge, micro-text: abstraction map (retain / merge / omit / transform / expose — remove roughly 60–80% of small detail); ONE primary illustration grammar (silhouette-led, contour-led, field-led, rhythm-led, or cut-paper-led); illustration field extent 45–70% with 55–75% of it quiet; dense foliage compressed to one main mass + at most a few branch gestures (omit 85–95% of individual leaves); the single added hue with exact saturated color name, source-derived shape, integration mode (source continuation / selective replacement / underprint / counterform / directional rhythm), material, function, and area 2–20%; visible hand-torn contour with a narrow fibrous band (1–4% of short edge) across roughly 35–70% of the photo perimeter; the exact micro-text (see below).
-4. Reproduction mood & hard avoids: warm cream aged paper, grain, ink bleed, flat scan light; then prohibitions.
-
-## Micro-text rules
-Default to English-only unless the user's note supplies other wording or requests Chinese/bilingual. Supplied wording is reproduced verbatim. Authored text: a standalone word, a 2–4 word keyword sequence with one separator (· / &), or a very short phrase — never a sentence. English ≤5 words; Chinese ≤8 characters. Render as small vintage typewriter / letterpress impression in a quiet paper area, clearly subordinate.
-
-## Hard avoids (state the relevant ones in paragraph 4)
-No literal tracing, leaf-by-leaf rendering, dense filigree, timid peripheral illustration, generic abstract motifs, detached color blocks or swatches, multiple added hues, clean digital clipping, sticker outlines, uniform decorative frames, heavy shadows, 3D depth, cinematic lighting, glossy or neon color, cartoon treatment, polished digital typography, bold all-caps, logos, watermarks, dates/serial metadata, illegible text.
-
-## Output
-Respond ONLY with valid JSON (no markdown fences) conforming to:
-{
-  "title": "Short poetic English zine headline, e.g. 'Vol. 07 · Afterimage of the City'",
-  "zineVolume": "e.g. 'VOL.01' or 'Vol. 13 · Summer Issue'",
-  "summary": "1–2 句中文创作思路：说明源生构图决定与加入色的结构作用，不暴露提示词细节",
-  "analysis": {
-    "subject": "核心主体与空间关系（中文）",
-    "lighting": "光影分析与编辑方向（中文）",
-    "palette": ["3–5 个色名，含建议的单一加入色"],
-    "mood": "情绪关键词（中文）"
-  },
-  "tags": ["Scenes Gathered", "Zine v1.3", 3–5 个风格标签],
-  "prompt": "The complete four-paragraph English generation prompt per the rules above. It will be sent verbatim to gpt-image-2 together with the source photo as reference."
-}
-`;
 
 // Helper to extract base64 data and mimeType from data URL
 function parseDataUrl(dataUrl: string): { mimeType: string; base64: string } {
@@ -234,7 +185,7 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Step 1 + 2: Full Remix Endpoint (Upload -> scenes-gathered-zine-v1-3 analysis & prompt -> gpt-image-2 generation)
+// Step 1 + 2: Full Remix Endpoint (Upload -> style skill analysis & prompt -> gpt-image-2 generation)
 app.post('/api/remix', async (req, res) => {
   const startTime = Date.now();
   try {
@@ -244,17 +195,19 @@ app.post('/api/remix', async (req, res) => {
       return res.status(400).json({ error: '请上传待处理的照片 (Missing image payload)' });
     }
 
-    // 1. Invoke vision LLM to inspect the image and execute the scenes-gathered-zine-v1-3 skill
+    const skill = resolveStyleSkill(stylePreset);
+
+    // 1. Invoke vision LLM to inspect the image and execute the selected style skill
     const userStyleContext = `
-用户指定的艺术风格预设: "${stylePreset || '经典独立杂志 (Classic Indie Zine)'}"
-用户附加需求: "${customNote || '请保留原图人物/主体的神态与核心特征，强化 scenes-gathered-zine-v1-3 艺术杂志质感'}"
+用户指定的艺术风格预设: "${stylePreset || skill.id}"
+用户附加需求: "${customNote || `请保留原图人物/主体的神态与核心特征，强化 ${skill.name} 艺术杂志质感`}"
 目标画幅比例: "${aspectRatio || '1:1'}"
 `;
 
-    console.log('Invoking scenes-gathered-zine-v1-3 skill on uploaded photo...');
-    const zineData = await analyzePhoto(image, `${SCENES_GATHERED_ZINE_SKILL_PROMPT}\n${userStyleContext}\n请现在读取该图片，输出结构化 JSON：`);
+    console.log(`Invoking ${skill.id} skill on uploaded photo...`);
+    const zineData = await analyzePhoto(image, `${skill.systemPrompt}\n${userStyleContext}\n请现在读取该图片，输出结构化 JSON：`);
 
-    const generatedPrompt = zineData.prompt || 'A cinematic scenes-gathered-zine editorial photograph, 35mm film grain, analog aesthetic.';
+    const generatedPrompt = zineData.prompt || 'A cinematic editorial paper poster, 35mm film grain, analog aesthetic.';
     console.log('Generated Zine Prompt:', generatedPrompt);
 
     // 2. Generate final image using gpt-image-2 (or fallback to Gemini image model)
@@ -267,7 +220,7 @@ app.post('/api/remix', async (req, res) => {
       success: true,
       title: zineData.title || 'Scenes Gathered Zine · 视觉特辑',
       zineVolume: zineData.zineVolume || 'Vol. 13',
-      summary: zineData.summary || '已融合原图视觉基底与 scenes-gathered-zine-v1-3 杂志风版式美学。',
+      summary: zineData.summary || `已融合原图视觉基底与所选风格 (${skill.name}) 的版式美学。`,
       analysis: zineData.analysis || {
         subject: '拍摄主体',
         lighting: '自然光影',
@@ -313,7 +266,7 @@ app.post('/api/generate-image', async (req, res) => {
   }
 });
 
-// Prompt-only synthesis: Run scenes-gathered-zine-v1-3 vision skill without immediate render
+// Prompt-only synthesis: Run the selected style vision skill without immediate render
 app.post('/api/synthesize-prompt', async (req, res) => {
   try {
     const { image, stylePreset, customNote } = req.body;
@@ -321,9 +274,10 @@ app.post('/api/synthesize-prompt', async (req, res) => {
       return res.status(400).json({ error: '请上传照片' });
     }
 
+    const skill = resolveStyleSkill(stylePreset);
     const data = await analyzePhoto(
       image,
-      `${SCENES_GATHERED_ZINE_SKILL_PROMPT}\n用户风格需求: "${stylePreset || '经典独立杂志'}"\n附加说明: "${customNote || '请提取并升华为 scenes-gathered-zine-v1-3 提示词'}"\n请输出 JSON:`
+      `${skill.systemPrompt}\n用户风格需求: "${stylePreset || skill.id}"\n附加说明: "${customNote || `请提取并升华为 ${skill.name} 提示词`}"\n请输出 JSON:`
     );
     return res.json({ success: true, data });
   } catch (error: any) {

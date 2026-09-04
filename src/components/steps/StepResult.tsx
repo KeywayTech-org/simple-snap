@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { RemixResult } from '../../types';
+import { getPresetDisplayName } from '../../data/presets';
 import { ShinyText } from '../reactbits/ShinyText';
 import { DecryptedText } from '../reactbits/DecryptedText';
 import { SpotlightCard } from '../reactbits/SpotlightCard';
@@ -172,7 +173,7 @@ export const StepResult: React.FC<StepResultProps> = ({
             <span>
               {showOriginal
                 ? '原始照片'
-                : `scenes-gathered-zine-v1-3 · ${result.modelName || 'gpt-image-2'}`}
+                : `${getPresetDisplayName(result.stylePreset)} · ${result.modelName || 'gpt-image-2'}`}
             </span>
           </div>
 
@@ -252,7 +253,7 @@ export const StepResult: React.FC<StepResultProps> = ({
           <div className="bg-stone-900 border border-stone-800 p-3 rounded-xl flex flex-col gap-2 animate-fade-in">
             <div className="flex items-center justify-between text-[11px] text-stone-400">
               <span>微调 gpt-image-2 提示词：</span>
-              <span className="font-mono text-amber-400">scenes-gathered-zine-v1-3</span>
+              <span className="font-mono text-amber-400">{getPresetDisplayName(result.stylePreset)}</span>
             </div>
             <textarea
               value={editedPrompt}

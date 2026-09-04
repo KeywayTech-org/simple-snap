@@ -43,7 +43,7 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
           选择风格
         </h2>
         <p className="text-xs sm:text-sm font-serif text-stone-600 mt-1 tracking-widest">
-          横向滑动浏览 · 依 scenes-gathered-zine-v1-3 赋型
+          横向滑动浏览 · 依选定风格赋型
         </p>
       </div>
 

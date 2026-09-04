@@ -79,7 +79,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
         </h2>
         <p className="text-xs sm:text-sm font-serif text-stone-600 mt-1 tracking-widest">
           {isProcessing
-            ? '融合 scenes-gathered-zine-v1-3 调性与 gpt-image-2'
+            ? '融合选定风格调性与 gpt-image-2'
             : '留白成章 · 纸本呈画'}
         </p>
       </div>

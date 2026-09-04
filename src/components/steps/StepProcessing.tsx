@@ -50,7 +50,7 @@ export const StepProcessing: React.FC<StepProcessingProps> = ({
         </span>
 
         <h3 className="text-lg sm:text-xl font-bold text-white mb-1">
-          <ShinyText text="正在重构 scenes-gathered-zine-v1-3 艺术大片" speed={3} />
+          <ShinyText text="正在重构所选风格艺术大片" speed={3} />
         </h3>
 
         <div className="text-xs text-stone-400 max-w-sm mb-6 font-mono">
@@ -100,10 +100,10 @@ export const StepProcessing: React.FC<StepProcessingProps> = ({
             )}
             <div className="flex-1">
               <span className="font-semibold text-amber-300/90">
-                2. scenes-gathered-zine-v1-3 编排：
+                2. 风格 Skill 编排：
               </span>
               <span className="text-stone-300 ml-1">
-                生成 35mm 胶片质感与微杂志留白提示词
+                生成专属的高精英语海报提示词
               </span>
             </div>
           </div>

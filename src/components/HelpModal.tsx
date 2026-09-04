@@ -31,7 +31,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               工作流与技术解析
             </h3>
             <p className="text-xs text-stone-400">
-              AI P图 · scenes-gathered-zine-v1-3 工坊
+              AI P图 · 风格 Skill 工坊
             </p>
           </div>
         </div>
@@ -40,10 +40,10 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           <div className="bg-stone-950/60 p-3.5 rounded-xl border border-stone-800">
             <h4 className="font-semibold text-stone-200 mb-2 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              什么是 scenes-gathered-zine-v1-3？
+              什么是风格 Skill？
             </h4>
             <p className="text-stone-400">
-              scenes-gathered-zine-v1-3 是一套专为摄影再创作设计的艺术工坊提示词能力。它深入分析输入照片的主体、空间布局、对比度与情绪基底，将其注入独立摄影画册（Photo Zine）的独特视觉美学：35mm 细致胶片质感、自然的日式/欧系微杂志折页留白、Risograph 渐变色墨晕染与纪实呼吸感。
+              每个风格对应一套专为摄影再创作设计的艺术工坊提示词能力（skill），如「拾景纸刊」「诗性纸刊」。解读模型会深入分析输入照片的主体、空间布局、对比度与情绪基底，再按所选风格的规则将其注入独立艺术纸刊的独特视觉美学。
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <div>
                 <p className="font-medium text-stone-200">大模型读取与 Skill 提示词编排</p>
                 <p className="text-stone-400 text-[11px]">
-                  视觉大模型深度识别画面主体特征，调用 scenes-gathered-zine-v1-3 skill 规则编撰专属的高精英语生成指令。
+                  视觉大模型深度识别画面主体特征，调用所选风格的 skill 规则编撰专属的高精英语生成指令。
                 </p>
               </div>
             </div>

@@ -14,6 +14,7 @@ import {
   ArrowLeftRight,
 } from 'lucide-react';
 import { RemixResult } from '../types';
+import { getPresetDisplayName } from '../data/presets';
 
 interface ResultViewerProps {
   result: RemixResult | null;
@@ -139,7 +140,7 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
             AI 正在进行杂志风 P 图制作
           </h3>
           <p className="text-xs text-stone-400 max-w-sm mb-6">
-            融合原图构图与 scenes-gathered-zine-v1-3 艺术语言，交由 gpt-image-2 渲染
+            融合原图构图与所选风格的艺术语言，交由 gpt-image-2 渲染
           </p>
 
           {/* Workflow Steps Indicator */}
@@ -173,7 +174,7 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
               ) : (
                 <div className="w-4 h-4 rounded-full border border-stone-700 shrink-0"></div>
               )}
-              <span>2. 调度 scenes-gathered-zine-v1-3：编排新杂志风提示词</span>
+              <span>2. 调度所选风格 Skill：编排新海报提示词</span>
             </div>
 
             <div
@@ -244,7 +245,7 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
                 <span>
                   {showOriginal
                     ? '原始照片'
-                    : `scenes-gathered-zine-v1-3 (${result.modelName || 'gpt-image-2'})`}
+                    : `${getPresetDisplayName(result.stylePreset)} (${result.modelName || 'gpt-image-2'})`}
                 </span>
               </div>
 
@@ -306,13 +307,13 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
             </button>
           </div>
 
-          {/* scenes-gathered-zine-v1-3 Creative Analysis Card */}
+          {/* Style Creative Analysis Card */}
           <div className="bg-stone-900/70 border border-stone-800/90 rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-stone-800/80 pb-2.5">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 <h4 className="text-xs sm:text-sm font-semibold text-stone-200">
-                  scenes-gathered-zine-v1-3 艺术解析
+                  {getPresetDisplayName(result.stylePreset)} 艺术解析
                 </h4>
               </div>
               <span className="text-[11px] text-stone-400 font-mono">
@@ -446,7 +447,7 @@ export const ResultViewer: React.FC<ResultViewerProps> = ({
             等待开始制作
           </h4>
           <p className="text-xs text-stone-500 max-w-xs">
-            在左侧上传照片并选择 scenes-gathered-zine-v1-3 预设，点击「开始 AI P图」即可生成
+            在左侧上传照片并选择艺术风格预设，点击「开始 AI P图」即可生成
           </p>
         </div>
       )}

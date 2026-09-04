@@ -28,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-stone-400 font-light text-xs sm:text-sm">| Zine Studio</span>
               </h1>
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/25 font-mono">
-                <Sparkles className="w-2.5 h-2.5" /> scenes-gathered-zine-v1-3
+                <Sparkles className="w-2.5 h-2.5" /> 风格 Skill 工坊
               </span>
             </div>
             <p className="text-[10px] text-stone-400 leading-none hidden xs:block">
