@@ -1,0 +1,29 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# 服务名即域名前缀：https://simple-snap.onrender.com
+services:
+  - type: web
+    name: simple-snap
+    runtime: node
+    plan: free
+    healthCheckPath: /api/status
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # 非密钥配置（与 server/core.ts 默认值一致，显式声明便于调整）
+      - key: LLM_BASE_URL
+        value: https://api.b.ai/v1
+      - key: LLM_MODEL
+        value: qwen3.8-flash
+      - key: IMAGE_BASE_URL
+        value: https://api.liangrekui.com
+      - key: IMAGE_MODEL
+        value: gpt-image-2
+      - key: IMAGE_QUALITY
+        value: medium
+      # 密钥：首次部署时在 Render 控制台填入（不进代码库）
+      - key: LLM_API_KEY
+        sync: false
+      - key: IMAGE_API_KEY
+        sync: false
