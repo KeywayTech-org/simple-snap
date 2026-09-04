@@ -1,0 +1,17 @@
+{
+  "name": "simple-snap",
+  "main": "dist-worker/worker.js",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "LLM_BASE_URL": "https://api.b.ai/v1",
+    "LLM_MODEL": "qwen3.8-flash",
+    "IMAGE_BASE_URL": "https://api.liangrekui.com",
+    "IMAGE_MODEL": "gpt-image-2",
+    "IMAGE_QUALITY": "medium"
+  }
+}

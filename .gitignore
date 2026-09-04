@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+dist-worker/
+.dev.vars
+.wrangler/
