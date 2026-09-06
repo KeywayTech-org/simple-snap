@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Download, Check, RotateCcw, Smartphone, CheckCircle2, Loader2, Circle, Terminal } from 'lucide-react';
+import { Download, Check, RotateCcw, Smartphone, CheckCircle2, Loader2, Circle } from 'lucide-react';
 import { RemixResult, RemixStageInfo, RemixStageType } from '../../types';
 
 interface ZenGenerateScreenProps {
@@ -9,7 +9,6 @@ interface ZenGenerateScreenProps {
   progressPercent: number;
   result: RemixResult | null;
   onReset: () => void;
-  onOpenLogs?: () => void;
 }
 
 interface StepMeta {
@@ -32,7 +31,6 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
   progressPercent,
   result,
   onReset,
-  onOpenLogs,
 }) => {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
@@ -246,19 +244,6 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
                 <RotateCcw className="w-3 h-3" />
                 <span>再作一幅</span>
               </button>
-              {onOpenLogs && (
-                <>
-                  <span className="text-stone-300">·</span>
-                  <button
-                    type="button"
-                    onClick={onOpenLogs}
-                    className="text-stone-500 hover:text-stone-800 flex items-center gap-1 whitespace-nowrap cursor-pointer"
-                  >
-                    <Terminal className="w-3 h-3" />
-                    <span>查看运行日志</span>
-                  </button>
-                </>
-              )}
             </div>
           </>
         )}
@@ -266,16 +251,6 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
         {isProcessing && (
           <div className="flex items-center gap-3 text-[11px] sm:text-xs font-serif text-stone-500">
             <span>正在生成，请静候片刻...</span>
-            {onOpenLogs && (
-              <button
-                type="button"
-                onClick={onOpenLogs}
-                className="text-stone-600 hover:text-stone-900 underline flex items-center gap-1 cursor-pointer"
-              >
-                <Terminal className="w-3 h-3" />
-                <span>实时日志</span>
-              </button>
-            )}
           </div>
         )}
       </div>

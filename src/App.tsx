@@ -4,12 +4,11 @@ import { ZenHeader } from './components/zen/ZenHeader';
 import { ZenUploadScreen } from './components/zen/ZenUploadScreen';
 import { ZenStyleScreen } from './components/zen/ZenStyleScreen';
 import { ZenGenerateScreen } from './components/zen/ZenGenerateScreen';
-import { LogModal } from './components/LogModal';
 import { ToastProvider, useToast } from './components/ui/Toast';
 import { RemixResult, RemixStageInfo } from './types';
 import { STYLE_PRESETS } from './data/presets';
 import { clientLogger } from './utils/clientLogger';
-import { AlertCircle, Terminal } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 function AppContent() {
   const toast = useToast();
@@ -29,9 +28,6 @@ function AppContent() {
   const [currentResult, setCurrentResult] = useState<RemixResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentTraceId, setCurrentTraceId] = useState<string | undefined>();
-
-  // Log Modal State
-  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
   // 进度条平滑缓动计时器引用
   const progressAnimationRef = useRef<number | null>(null);
@@ -200,14 +196,9 @@ function AppContent() {
       clientLogger.error('RemixFailed', `生成流程异常: ${err?.message}`, err);
       if (progressAnimationRef.current) clearInterval(progressAnimationRef.current);
 
-      const errorMsg = err?.message || '生成中遇到问题，请重试';
+      const errorMsg = err?.message || '生成中遇到问题，请稍后重试';
       setErrorMessage(errorMsg);
-      toast.error(
-        '海报生成受阻',
-        errorMsg,
-        '查看排障日志',
-        () => setIsLogModalOpen(true)
-      );
+      toast.error('海报生成受阻', errorMsg);
       goToScreen(2);
     } finally {
       if (progressAnimationRef.current) clearInterval(progressAnimationRef.current);
@@ -263,13 +254,6 @@ function AppContent() {
                 <span className="min-w-0 break-words">{errorMessage}</span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsLogModalOpen(true)}
-                  className="text-stone-700 hover:text-stone-950 text-[11px] underline font-bold cursor-pointer"
-                >
-                  排障日志
-                </button>
                 <button
                   type="button"
                   onClick={() => setErrorMessage(null)}
@@ -345,32 +329,11 @@ function AppContent() {
                 progressPercent={progressPercent}
                 result={currentResult}
                 onReset={handleReset}
-                onOpenLogs={() => setIsLogModalOpen(true)}
               />
             </motion.div>
           )}
         </AnimatePresence>
       </main>
-
-      {/* Floating Diagnostics Log Button in Bottom Left */}
-      <div className="fixed bottom-2 left-2 z-30 opacity-70 hover:opacity-100 transition-opacity">
-        <button
-          type="button"
-          onClick={() => setIsLogModalOpen(true)}
-          className="flex items-center gap-1.5 px-2 py-1 bg-[#faf8f5]/90 hover:bg-stone-100 border border-stone-300 text-stone-600 hover:text-stone-900 text-[10px] tracking-wider rounded-xs shadow-2xs font-serif cursor-pointer"
-          title="点击查看全链路运行日志与排障诊断"
-        >
-          <Terminal className="w-3 h-3 text-stone-500" />
-          <span>运行日志</span>
-        </button>
-      </div>
-
-      {/* Global Log Modal */}
-      <LogModal
-        isOpen={isLogModalOpen}
-        onClose={() => setIsLogModalOpen(false)}
-        currentTraceId={currentTraceId}
-      />
     </div>
   );
 }
