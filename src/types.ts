@@ -21,6 +21,7 @@ export interface RemixResult {
   durationSeconds: string;
   stylePreset: string;
   aspectRatio: string;
+  traceId?: string;
 }
 
 export interface StylePreset {
@@ -37,4 +38,26 @@ export interface SampleImage {
   label: string;
   url: string;
   category: string;
+}
+
+export type RemixStageType = 'analyzing' | 'synthesizing' | 'generating' | 'transferring' | 'completed';
+
+export interface RemixStageInfo {
+  stage: RemixStageType;
+  step: number;
+  totalSteps: number;
+  title: string;
+  detail: string;
+  progress: number;
+  traceId?: string;
+  timestamp?: number;
+}
+
+export interface ClientLogItem {
+  id: string;
+  time: string;
+  level: 'info' | 'warn' | 'error';
+  category: string;
+  message: string;
+  data?: any;
 }

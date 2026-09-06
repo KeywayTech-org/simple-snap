@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { Download, Check, RotateCcw, Smartphone } from 'lucide-react';
-import { RemixResult } from '../../types';
+import { motion } from 'motion/react';
+import { Download, Check, RotateCcw, Smartphone, CheckCircle2, Loader2, Circle, Terminal } from 'lucide-react';
+import { RemixResult, RemixStageInfo, RemixStageType } from '../../types';
 
 interface ZenGenerateScreenProps {
   isProcessing: boolean;
+  currentStage: RemixStageInfo | null;
   progressPercent: number;
   result: RemixResult | null;
   onReset: () => void;
+  onOpenLogs?: () => void;
 }
+
+interface StepMeta {
+  key: RemixStageType;
+  step: number;
+  title: string;
+  desc: string;
+}
+
+const STAGES_CONFIG: StepMeta[] = [
+  { key: 'analyzing', step: 1, title: '图片解析中', desc: '原图构图与主体光影析理' },
+  { key: 'synthesizing', step: 2, title: '灵感生成中', desc: '艺术风格编排与提示词推演' },
+  { key: 'generating', step: 3, title: '图片重构中', desc: '神经画笔纸本撕边与重绘' },
+  { key: 'transferring', step: 4, title: '图片传输中', desc: '产物解码校验与数据呈画' },
+];
 
 export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
   isProcessing,
+  currentStage,
   progressPercent,
   result,
   onReset,
+  onOpenLogs,
 }) => {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
@@ -67,6 +85,8 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
     }
   };
 
+  const currentStepNumber = currentStage?.step || 1;
+
   return (
     <div className="w-full max-w-xl min-w-0 mx-auto flex flex-1 min-h-0 flex-col justify-between py-2 sm:py-4 gap-3 sm:gap-5 px-2 sm:px-4">
       {/* Title */}
@@ -79,7 +99,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
         </h2>
         <p className="text-xs sm:text-sm font-serif text-stone-600 mt-1 tracking-widest">
           {isProcessing
-            ? '融合选定风格调性与 gpt-image-2'
+            ? (currentStage?.detail || '正按真实阶段流式制作艺术画报...')
             : '留白成章 · 纸本呈画'}
         </p>
       </div>
@@ -87,33 +107,72 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
       {/* Main Center Canvas */}
       <div className="flex-1 min-h-0 min-w-0 flex flex-col items-center justify-center w-full">
         {isProcessing ? (
-          /* Loading State: Minimalist Progress Bar */
-          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-white p-6 sm:p-8 border border-stone-300 shadow-2xs text-center flex flex-col items-center relative shrink-0 select-none">
+          /* Loading State: Multi-stage Real Progress Box */
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-white p-5 sm:p-6 border border-stone-300 shadow-2xs flex flex-col items-center relative shrink-0 select-none">
             {/* Corner marks */}
             <div className="absolute top-2 left-2 w-3 h-3 border-t border-l border-stone-400" />
             <div className="absolute top-2 right-2 w-3 h-3 border-t border-r border-stone-400" />
             <div className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-stone-400" />
             <div className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-stone-400" />
 
-            <div className="stamp-seal text-xs px-1.5 py-1 mb-4 font-serif">
-              墨韵成画
+            {/* Header Stage Tag */}
+            <div className="w-full flex items-center justify-between border-b border-stone-200 pb-2 mb-3">
+              <span className="stamp-seal text-[10px] px-1.5 py-0.5 font-serif">
+                {currentStage?.title || '墨韵淬炼'}
+              </span>
+              <span className="text-[11px] font-mono text-stone-600">
+                阶段 {currentStepNumber} / 4
+              </span>
             </div>
 
-            <p className="font-serif text-xs sm:text-sm text-stone-800 tracking-widest mb-4">
-              正在研磨视觉机理，生成艺术海报...
-            </p>
+            {/* 4 Real Stages Flow List */}
+            <div className="w-full space-y-2 mb-4 font-serif">
+              {STAGES_CONFIG.map((s) => {
+                const isDone = currentStepNumber > s.step;
+                const isCurrent = currentStepNumber === s.step;
+                const isPending = currentStepNumber < s.step;
+
+                return (
+                  <div
+                    key={s.key}
+                    className={`flex items-center justify-between p-2 rounded-xs border transition-all text-xs ${
+                      isCurrent
+                        ? 'bg-stone-100 border-stone-900 text-stone-950 font-bold shadow-2xs'
+                        : isDone
+                        ? 'bg-stone-50 border-stone-200 text-stone-700'
+                        : 'bg-transparent border-dashed border-stone-200 text-stone-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {isDone ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                      ) : isCurrent ? (
+                        <Loader2 className="w-3.5 h-3.5 text-stone-900 animate-spin shrink-0" />
+                      ) : (
+                        <Circle className="w-3.5 h-3.5 text-stone-300 shrink-0" />
+                      )}
+                      <span className="tracking-wider whitespace-nowrap">{s.title}</span>
+                    </div>
+
+                    <span className="text-[10px] text-stone-500 font-sans tracking-tight truncate pl-2">
+                      {isCurrent ? currentStage?.detail || s.desc : s.desc}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Ultra-clean Line Progress Bar */}
-            <div className="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden mb-2.5">
+            <div className="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden mb-2">
               <div
                 className="bg-stone-900 h-full transition-all duration-300 ease-out"
-                style={{ width: `${Math.min(100, Math.max(8, progressPercent))}%` }}
+                style={{ width: `${Math.min(100, Math.max(6, progressPercent))}%` }}
               />
             </div>
 
             <div className="w-full flex justify-between text-[10px] sm:text-[11px] font-serif text-stone-600 tracking-wider">
-              <span className="whitespace-nowrap">大模型视界析理</span>
-              <span className="font-mono">{Math.round(progressPercent)}%</span>
+              <span className="truncate">{currentStage?.detail || '正协同多模态服务流式处理中'}</span>
+              <span className="font-mono font-bold shrink-0 pl-2">{Math.round(progressPercent)}%</span>
             </div>
           </div>
         ) : result ? (
@@ -150,7 +209,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
         ) : null}
       </div>
 
-      {/* Bottom Actions: Pure Single Download Button + Reset */}
+      {/* Bottom Actions */}
       <div className="border-t border-stone-200/80 pt-3 flex flex-col items-center gap-2.5 shrink-0 w-full">
         {!isProcessing && result && (
           <>
@@ -182,19 +241,42 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
               <button
                 type="button"
                 onClick={onReset}
-                className="text-stone-700 hover:text-stone-950 underline transition-colors flex items-center gap-1 whitespace-nowrap"
+                className="text-stone-700 hover:text-stone-950 underline transition-colors flex items-center gap-1 whitespace-nowrap cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>再作一幅</span>
               </button>
+              {onOpenLogs && (
+                <>
+                  <span className="text-stone-300">·</span>
+                  <button
+                    type="button"
+                    onClick={onOpenLogs}
+                    className="text-stone-500 hover:text-stone-800 flex items-center gap-1 whitespace-nowrap cursor-pointer"
+                  >
+                    <Terminal className="w-3 h-3" />
+                    <span>查看运行日志</span>
+                  </button>
+                </>
+              )}
             </div>
           </>
         )}
 
         {isProcessing && (
-          <p className="font-serif text-[11px] sm:text-xs text-stone-500 tracking-widest whitespace-nowrap">
-            正在生成，请静候片刻...
-          </p>
+          <div className="flex items-center gap-3 text-[11px] sm:text-xs font-serif text-stone-500">
+            <span>正在生成，请静候片刻...</span>
+            {onOpenLogs && (
+              <button
+                type="button"
+                onClick={onOpenLogs}
+                className="text-stone-600 hover:text-stone-900 underline flex items-center gap-1 cursor-pointer"
+              >
+                <Terminal className="w-3 h-3" />
+                <span>实时日志</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

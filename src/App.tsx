@@ -1,13 +1,19 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ZenHeader } from './components/zen/ZenHeader';
 import { ZenUploadScreen } from './components/zen/ZenUploadScreen';
 import { ZenStyleScreen } from './components/zen/ZenStyleScreen';
 import { ZenGenerateScreen } from './components/zen/ZenGenerateScreen';
-import { RemixResult } from './types';
-import { AlertCircle } from 'lucide-react';
+import { LogModal } from './components/LogModal';
+import { ToastProvider, useToast } from './components/ui/Toast';
+import { RemixResult, RemixStageInfo } from './types';
+import { STYLE_PRESETS } from './data/presets';
+import { clientLogger } from './utils/clientLogger';
+import { AlertCircle, Terminal } from 'lucide-react';
 
-export default function App() {
+function AppContent() {
+  const toast = useToast();
+
   // Exact 3 Screens: 1 = Upload, 2 = Select Style, 3 = Generate & Download
   const [currentScreen, setCurrentScreen] = useState<1 | 2 | 3>(1);
   const [direction, setDirection] = useState<number>(1);
@@ -19,8 +25,16 @@ export default function App() {
   // Generation state
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [currentStage, setCurrentStage] = useState<RemixStageInfo | null>(null);
   const [currentResult, setCurrentResult] = useState<RemixResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentTraceId, setCurrentTraceId] = useState<string | undefined>();
+
+  // Log Modal State
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+
+  // 进度条平滑缓动计时器引用
+  const progressAnimationRef = useRef<number | null>(null);
 
   const goToScreen = (screen: 1 | 2 | 3) => {
     setDirection(screen > currentScreen ? 1 : -1);
@@ -28,25 +42,38 @@ export default function App() {
   };
 
   const handleReset = () => {
+    clientLogger.info('UserAction', '用户重置操作流程');
     setCurrentImage(null);
     setCurrentResult(null);
     setIsProcessing(false);
     setProgressPercent(0);
+    setCurrentStage(null);
     setErrorMessage(null);
     goToScreen(1);
+    toast.info('已重置画布', '可重新选取新照片进行赋印');
   };
 
   // Screen 1 -> Screen 2
   const handleNextFromUpload = () => {
     if (!currentImage) {
       setErrorMessage('请先选取一张照片');
+      toast.warning('请先选取照片', '点击虚线区域或拖拽图片即可');
       return;
     }
     setErrorMessage(null);
+    clientLogger.info('Navigation', '照片已选定，进入风格选择');
     goToScreen(2);
   };
 
-  // Screen 2 -> Screen 3 (Execute AI Generation)
+  // 风格切换处理
+  const handleSelectPreset = (presetId: string) => {
+    setSelectedPresetId(presetId);
+    const preset = STYLE_PRESETS.find((p) => p.id === presetId);
+    clientLogger.info('UserAction', `选定风格预设: ${preset?.name || presetId}`);
+    toast.info(`已选风格：${preset?.name || presetId}`, preset?.description);
+  };
+
+  // 真实阶段流式生成执行
   const handleStartGenerate = async () => {
     if (!currentImage) {
       goToScreen(1);
@@ -55,69 +82,135 @@ export default function App() {
 
     setErrorMessage(null);
     setIsProcessing(true);
-    setProgressPercent(15);
+    setProgressPercent(8);
+    const initialTraceId = `tr-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 4)}`;
+    setCurrentTraceId(initialTraceId);
+    setCurrentStage({
+      stage: 'analyzing',
+      step: 1,
+      totalSteps: 4,
+      title: '图片解析中',
+      detail: '正在建立连接并上传照片特征...',
+      progress: 8,
+      traceId: initialTraceId,
+    });
+
+    clientLogger.info('Remix', '开始全流程海报淬炼', { preset: selectedPresetId, traceId: initialTraceId });
+    toast.info('已开启海报赋印', '正在流式协同大模型分析与生图');
     goToScreen(3);
 
-    // Simulated graceful progress curve
-    const interval = setInterval(() => {
+    // 辅助：平滑逼近目标百分比（在收到后端真实阶段更新前，在当前阶段区间内微缓动）
+    let targetProgress = 15;
+    if (progressAnimationRef.current) clearInterval(progressAnimationRef.current);
+    progressAnimationRef.current = window.setInterval(() => {
       setProgressPercent((prev) => {
-        if (prev >= 90) return prev;
-        return prev + Math.random() * 8 + 3;
+        if (prev < targetProgress) {
+          return prev + Math.max(0.4, (targetProgress - prev) * 0.15);
+        }
+        return prev;
       });
-    }, 400);
+    }, 150);
 
     try {
-      const res = await fetch('/api/remix', {
+      clientLogger.info('Network', '尝试发起 SSE 流式请求 /api/remix-stream');
+      const response = await fetch('/api/remix-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
         },
         body: JSON.stringify({
           image: currentImage,
           stylePreset: selectedPresetId,
-          aspectRatio: '3:4', // Classic poster editorial ratio
+          aspectRatio: '3:4',
+          traceId: initialTraceId,
         }),
       });
 
-      clearInterval(interval);
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `请求异常 (${res.status})`);
+      if (!response.ok || !response.body) {
+        throw new Error(`流式接口响应异常 (${response.status})`);
       }
 
-      const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.error || '生成失败');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      let receivedResult: any = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const block of lines) {
+          const trimmed = block.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const jsonStr = trimmed.replace(/^data:\s*/, '');
+          try {
+            const ev = JSON.parse(jsonStr);
+            if (ev.type === 'stage') {
+              clientLogger.info('StreamStage', `[${ev.step}/4] ${ev.title}: ${ev.detail}`, { progress: ev.progress });
+              setCurrentStage(ev);
+              targetProgress = ev.progress || targetProgress;
+            } else if (ev.type === 'complete') {
+              receivedResult = ev.result;
+              targetProgress = 100;
+              setProgressPercent(100);
+            } else if (ev.type === 'error') {
+              throw new Error(ev.error || '后端流式处理报错');
+            }
+          } catch (e: any) {
+            if (e?.message && e.message.includes('报错')) throw e;
+          }
+        }
       }
 
+      if (!receivedResult) {
+        throw new Error('未收到完整的成图结果数据');
+      }
+
+      if (progressAnimationRef.current) clearInterval(progressAnimationRef.current);
       setProgressPercent(100);
 
       const newResult: RemixResult = {
         id: `zine-${Date.now()}`,
         timestamp: Date.now(),
         originalImage: currentImage,
-        title: data.title || '无题 · 艺术画报',
-        zineVolume: data.zineVolume || 'VOL.01',
-        summary: data.summary,
-        analysis: data.analysis,
-        tags: data.tags,
-        prompt: data.prompt,
-        outputImageUrl: data.outputImageUrl,
-        provider: data.provider,
-        modelName: data.modelName,
-        durationSeconds: data.durationSeconds,
+        title: receivedResult.title || '无题 · 艺术画报',
+        zineVolume: receivedResult.zineVolume || 'VOL.01',
+        summary: receivedResult.summary,
+        analysis: receivedResult.analysis,
+        tags: receivedResult.tags,
+        prompt: receivedResult.prompt,
+        outputImageUrl: receivedResult.outputImageUrl,
+        provider: receivedResult.provider,
+        modelName: receivedResult.modelName,
+        durationSeconds: receivedResult.durationSeconds,
         stylePreset: selectedPresetId,
         aspectRatio: '3:4',
+        traceId: initialTraceId,
       };
 
       setCurrentResult(newResult);
+      clientLogger.info('Success', '海报生成全部完成', { title: newResult.title, duration: newResult.durationSeconds });
+      toast.success('海报淬炼赋印完成', '已融合所选风格美学，可下载或再作一幅');
     } catch (err: any) {
-      console.error('Generate error:', err);
-      clearInterval(interval);
-      setErrorMessage(err?.message || '生成中遇到问题，请重试');
+      clientLogger.error('RemixFailed', `生成流程异常: ${err?.message}`, err);
+      if (progressAnimationRef.current) clearInterval(progressAnimationRef.current);
+
+      const errorMsg = err?.message || '生成中遇到问题，请重试';
+      setErrorMessage(errorMsg);
+      toast.error(
+        '海报生成受阻',
+        errorMsg,
+        '查看排障日志',
+        () => setIsLogModalOpen(true)
+      );
       goToScreen(2);
     } finally {
+      if (progressAnimationRef.current) clearInterval(progressAnimationRef.current);
       setIsProcessing(false);
     }
   };
@@ -169,12 +262,22 @@ export default function App() {
                 <AlertCircle className="w-3.5 h-3.5 text-stone-600 shrink-0" />
                 <span className="min-w-0 break-words">{errorMessage}</span>
               </div>
-              <button
-                onClick={() => setErrorMessage(null)}
-                className="text-stone-500 hover:text-stone-800 text-[11px] underline shrink-0"
-              >
-                忽略
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsLogModalOpen(true)}
+                  className="text-stone-700 hover:text-stone-950 text-[11px] underline font-bold cursor-pointer"
+                >
+                  排障日志
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setErrorMessage(null)}
+                  className="text-stone-400 hover:text-stone-700 text-[11px] cursor-pointer"
+                >
+                  忽略
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -198,6 +301,8 @@ export default function App() {
                 onImageSelected={(img) => {
                   setCurrentImage(img);
                   setErrorMessage(null);
+                  clientLogger.info('UserAction', '用户成功载入照片');
+                  toast.success('照片载入就绪', '已成功识别源图，可点击下一步择格');
                 }}
                 onNext={handleNextFromUpload}
               />
@@ -217,7 +322,7 @@ export default function App() {
               <ZenStyleScreen
                 currentImage={currentImage}
                 selectedPresetId={selectedPresetId}
-                onSelectPreset={setSelectedPresetId}
+                onSelectPreset={handleSelectPreset}
                 onPrev={() => goToScreen(1)}
                 onStartRemix={handleStartGenerate}
               />
@@ -236,14 +341,44 @@ export default function App() {
             >
               <ZenGenerateScreen
                 isProcessing={isProcessing}
+                currentStage={currentStage}
                 progressPercent={progressPercent}
                 result={currentResult}
                 onReset={handleReset}
+                onOpenLogs={() => setIsLogModalOpen(true)}
               />
             </motion.div>
           )}
         </AnimatePresence>
       </main>
+
+      {/* Floating Diagnostics Log Button in Bottom Left */}
+      <div className="fixed bottom-2 left-2 z-30 opacity-70 hover:opacity-100 transition-opacity">
+        <button
+          type="button"
+          onClick={() => setIsLogModalOpen(true)}
+          className="flex items-center gap-1.5 px-2 py-1 bg-[#faf8f5]/90 hover:bg-stone-100 border border-stone-300 text-stone-600 hover:text-stone-900 text-[10px] tracking-wider rounded-xs shadow-2xs font-serif cursor-pointer"
+          title="点击查看全链路运行日志与排障诊断"
+        >
+          <Terminal className="w-3 h-3 text-stone-500" />
+          <span>运行日志</span>
+        </button>
+      </div>
+
+      {/* Global Log Modal */}
+      <LogModal
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+        currentTraceId={currentTraceId}
+      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }

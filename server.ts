@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { AIConfig, analyzePhoto, generateFinalImage, remixPhoto } from './server/core';
 import { resolveStyleSkill } from './server/skills';
+import { logger, createTraceId, getRecentLogs, clearLogs, LogLevel } from './server/logger';
 
 // override: 机器上存在同名全局环境变量（其他项目的 LLM_*），项目 .env 必须优先
 dotenv.config({ override: true });
@@ -40,60 +41,119 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Step 1 + 2: Full Remix Endpoint (Upload -> style skill analysis & prompt -> gpt-image-2 generation)
-app.post('/api/remix', async (req, res) => {
+// 日志查询接口（支持按 traceId / level / limit 过滤）
+app.get('/api/logs', (req, res) => {
+  const traceId = (req.query.traceId as string) || undefined;
+  const level = (req.query.level as LogLevel) || undefined;
+  const limit = req.query.limit ? Number(req.query.limit) : 100;
+  const logs = getRecentLogs({ traceId, level, limit });
+  res.json({ success: true, count: logs.length, logs });
+});
+
+// 清空日志接口
+app.delete('/api/logs', (req, res) => {
+  clearLogs();
+  res.json({ success: true, message: '日志已清空' });
+});
+
+// Step 1 + 2: 流式海报制作接口（SSE：分步推送真实阶段）
+app.post('/api/remix-stream', async (req, res) => {
+  const traceId = req.body?.traceId || createTraceId();
+  logger.info('HttpApi', `收到流式海报生成请求 /api/remix-stream`, { preset: req.body?.stylePreset }, traceId);
+
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  const sendEvent = (type: string, payload: any) => {
+    res.write(`data: ${JSON.stringify({ type, ...payload })}\n\n`);
+  };
+
   try {
-    return res.json(await remixPhoto(AI, req.body));
+    const result = await remixPhoto(
+      AI,
+      { ...req.body, traceId },
+      (stageInfo) => {
+        sendEvent('stage', stageInfo);
+      }
+    );
+    sendEvent('complete', { result });
+    res.end();
   } catch (error: any) {
-    console.error('Error in /api/remix:', error);
+    logger.error('HttpApi', `流式生图异常: ${error?.message}`, error?.stack, traceId);
+    sendEvent('error', {
+      error: error?.message || '图像处理与生成失败，请稍后重试',
+      traceId,
+    });
+    res.end();
+  }
+});
+
+// 普通接口（兼容无 SSE 的直接 JSON 返回）
+app.post('/api/remix', async (req, res) => {
+  const traceId = req.body?.traceId || createTraceId();
+  logger.info('HttpApi', `收到标准海报生成请求 /api/remix`, null, traceId);
+  try {
+    const result = await remixPhoto(AI, { ...req.body, traceId });
+    return res.json(result);
+  } catch (error: any) {
+    logger.error('HttpApi', `标准生图异常: ${error?.message}`, error?.stack, traceId);
     return res.status(500).json({
       error: error?.message || '图像处理与生成失败，请稍后重试',
+      traceId,
     });
   }
 });
 
 // Regenerate or refine using modified prompt
 app.post('/api/generate-image', async (req, res) => {
+  const traceId = req.body?.traceId || createTraceId();
   try {
     const { prompt, aspectRatio, referenceImage } = req.body;
     if (!prompt) {
-      return res.status(400).json({ error: '缺少提示词 (Missing prompt)' });
+      return res.status(400).json({ error: '缺少提示词 (Missing prompt)', traceId });
     }
 
-    console.log('Regenerating image with prompt:', prompt);
-    const result = await generateFinalImage(AI, prompt, aspectRatio || '1:1', referenceImage);
+    logger.info('HttpApi', '使用自定义提示词再生图', { promptPreview: prompt.slice(0, 100) }, traceId);
+    const result = await generateFinalImage(AI, prompt, aspectRatio || '1:1', referenceImage, traceId);
     return res.json({
       success: true,
+      traceId,
       outputImageUrl: result.imageUrl,
       provider: result.provider,
       modelName: result.modelName,
     });
   } catch (error: any) {
-    console.error('Error in /api/generate-image:', error);
+    logger.error('HttpApi', `再生图失败: ${error?.message}`, error?.stack, traceId);
     return res.status(500).json({
       error: error?.message || '生成失败，请稍后重试',
+      traceId,
     });
   }
 });
 
 // Prompt-only synthesis: Run the selected style vision skill without immediate render
 app.post('/api/synthesize-prompt', async (req, res) => {
+  const traceId = req.body?.traceId || createTraceId();
   try {
     const { image, stylePreset, customNote } = req.body;
     if (!image) {
-      return res.status(400).json({ error: '请上传照片' });
+      return res.status(400).json({ error: '请上传照片', traceId });
     }
 
     const skill = resolveStyleSkill(stylePreset);
+    logger.info('HttpApi', `单独提示词推演 [${skill.name}]`, null, traceId);
     const data = await analyzePhoto(
       AI,
       image,
-      `${skill.systemPrompt}\n用户风格需求: "${stylePreset || skill.id}"\n附加说明: "${customNote || `请提取并升华为 ${skill.name} 提示词`}"\n请输出 JSON:`
+      `${skill.systemPrompt}\n用户风格需求: "${stylePreset || skill.id}"\n附加说明: "${customNote || `请提取并升华为 ${skill.name} 提示词`}"\n请输出 JSON:`,
+      traceId
     );
-    return res.json({ success: true, data });
+    return res.json({ success: true, traceId, data });
   } catch (error: any) {
-    console.error('Error in /api/synthesize-prompt:', error);
-    return res.status(500).json({ error: error?.message || '提示词分析失败' });
+    logger.error('HttpApi', `提示词分析失败: ${error?.message}`, error?.stack, traceId);
+    return res.status(500).json({ error: error?.message || '提示词分析失败', traceId });
   }
 });
 
@@ -114,7 +174,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+    logger.info('System', `Server running on http://0.0.0.0:${PORT}`);
   });
 }
 
