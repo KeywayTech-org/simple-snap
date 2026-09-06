@@ -5,6 +5,7 @@ import { createServer as createViteServer } from 'vite';
 import { AIConfig, analyzePhoto, generateFinalImage, remixPhoto } from './server/core';
 import { resolveStyleSkill } from './server/skills';
 import { logger, createTraceId, getRecentLogs, clearLogs, LogLevel } from './server/logger';
+import { notifyDeploySuccess, notifyErrorAlert } from './server/feishu';
 
 // override: 机器上存在同名全局环境变量（其他项目的 LLM_*），项目 .env 必须优先
 dotenv.config({ override: true });
@@ -82,6 +83,11 @@ app.post('/api/remix-stream', async (req, res) => {
     res.end();
   } catch (error: any) {
     logger.error('HttpApi', `流式生图异常: ${error?.message}`, error?.stack, traceId);
+    notifyErrorAlert({
+      traceId,
+      module: 'RemixStream',
+      error: error?.message || '图像处理与生成失败',
+    }).catch(() => {});
     sendEvent('error', {
       error: error?.message || '图像处理与生成失败，请稍后重试',
       traceId,
@@ -173,8 +179,20 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, '0.0.0.0', async () => {
     logger.info('System', `Server running on http://0.0.0.0:${PORT}`);
+    const hostUrl =
+      process.env.APP_URL ||
+      process.env.RENDER_EXTERNAL_URL ||
+      `https://simple-snap.onrender.com`;
+
+    notifyDeploySuccess({
+      serviceUrl: hostUrl,
+      llmModel: AI.llmModel,
+      imageModel: AI.imageModel,
+      port: PORT,
+      environment: process.env.NODE_ENV || 'production',
+    }).catch(() => {});
   });
 }
 

@@ -27,3 +27,8 @@ services:
         sync: false
       - key: IMAGE_API_KEY
         sync: false
+      # 飞书群自定义机器人 Webhook（可选：部署成功与异常告警卡片通知）
+      - key: FEISHU_WEBHOOK_URL
+        sync: false
+      - key: FEISHU_SECRET
+        sync: false
