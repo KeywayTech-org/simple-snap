@@ -15,9 +15,9 @@ interface Env {
 
 function configFromEnv(env: Env): AIConfig {
   return {
-    llmBaseUrl: env.LLM_BASE_URL || 'https://api.b.ai/v1',
+    llmBaseUrl: env.LLM_BASE_URL || 'https://api.xkiro.com/v1',
     llmApiKey: env.LLM_API_KEY || '',
-    llmModel: env.LLM_MODEL || 'qwen3.8-flash',
+    llmModel: env.LLM_MODEL || 'minimax/minimax-m3:free',
     imageBaseUrl: env.IMAGE_BASE_URL || 'https://api.liangrekui.com',
     imageApiKey: env.IMAGE_API_KEY || '',
     imageModel: env.IMAGE_MODEL || 'gpt-image-2',

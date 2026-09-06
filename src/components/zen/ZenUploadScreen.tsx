@@ -31,7 +31,7 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center min-h-[380px] p-4">
+    <div className="w-full max-w-md min-w-0 mx-auto flex flex-col items-center justify-center min-h-[380px] p-4">
       <input
         ref={fileInputRef}
         type="file"
@@ -117,4 +117,3 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
     </div>
   );
 };
-

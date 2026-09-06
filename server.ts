@@ -17,9 +17,9 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // AI 服务配置：解读走 OpenAI 兼容视觉模型，生图走 new-api 通道的 gpt-image-2
 const AI: AIConfig = {
-  llmBaseUrl: process.env.LLM_BASE_URL || 'https://api.b.ai/v1',
+  llmBaseUrl: process.env.LLM_BASE_URL || 'https://api.xkiro.com/v1',
   llmApiKey: process.env.LLM_API_KEY || '',
-  llmModel: process.env.LLM_MODEL || 'qwen3.8-flash',
+  llmModel: process.env.LLM_MODEL || 'minimax/minimax-m3:free',
   imageBaseUrl: process.env.IMAGE_BASE_URL || 'https://api.liangrekui.com',
   imageApiKey: process.env.IMAGE_API_KEY || '',
   imageModel: process.env.IMAGE_MODEL || 'gpt-image-2',

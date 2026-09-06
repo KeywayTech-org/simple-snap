@@ -33,7 +33,7 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
   const chineseNumerals = ['壹', '贰', '叁', '肆', '伍'];
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col justify-between min-h-full py-2 sm:py-4 gap-3 sm:gap-5 px-2 sm:px-4">
+    <div className="w-full max-w-4xl min-w-0 mx-auto flex flex-1 min-h-0 flex-col justify-between py-2 sm:py-4 gap-3 sm:gap-5 px-2 sm:px-4">
       {/* Title with Chinese Serif */}
       <div className="text-center shrink-0">
         <span className="stamp-seal text-[10px] sm:text-[11px] px-1 py-0.5 mb-2 inline-block font-serif select-none">
@@ -48,7 +48,7 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
       </div>
 
       {/* Horizontal Cards Carousel Section */}
-      <div className="flex-1 flex flex-col justify-center my-auto w-full relative min-h-[220px]">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col justify-center w-full relative">
         {/* Navigation scroll arrows (visible on larger screens, safely positioned inside container) */}
         <button
           type="button"
@@ -70,7 +70,7 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
         {/* Horizontal Scrolling Card Track */}
         <div
           ref={scrollContainerRef}
-          className="flex items-stretch justify-center gap-3 sm:gap-5 overflow-x-auto no-scrollbar px-1 sm:px-8 py-2.5 scroll-smooth w-full"
+          className="flex items-stretch justify-start md:justify-center gap-3 sm:gap-5 overflow-x-auto no-scrollbar px-1 sm:px-8 py-2.5 scroll-smooth w-full min-w-0"
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {STYLE_PRESETS.map((preset: StylePreset, index: number) => {

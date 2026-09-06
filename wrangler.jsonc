@@ -8,8 +8,8 @@
     "run_worker_first": ["/api/*"]
   },
   "vars": {
-    "LLM_BASE_URL": "https://api.b.ai/v1",
-    "LLM_MODEL": "qwen3.8-flash",
+    "LLM_BASE_URL": "https://api.xkiro.com/v1",
+    "LLM_MODEL": "minimax/minimax-m3:free",
     "IMAGE_BASE_URL": "https://api.liangrekui.com",
     "IMAGE_MODEL": "gpt-image-2",
     "IMAGE_QUALITY": "medium"

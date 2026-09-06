@@ -68,7 +68,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto flex flex-col justify-between min-h-full py-2 sm:py-4 gap-3 sm:gap-5 px-2 sm:px-4">
+    <div className="w-full max-w-xl min-w-0 mx-auto flex flex-1 min-h-0 flex-col justify-between py-2 sm:py-4 gap-3 sm:gap-5 px-2 sm:px-4">
       {/* Title */}
       <div className="text-center shrink-0">
         <span className="stamp-seal text-[10px] sm:text-[11px] px-1 py-0.5 mb-2 inline-block font-serif select-none">
@@ -85,7 +85,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
       </div>
 
       {/* Main Center Canvas */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full my-auto min-h-[200px]">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col items-center justify-center w-full">
         {isProcessing ? (
           /* Loading State: Minimalist Progress Bar */
           <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-white p-6 sm:p-8 border border-stone-300 shadow-2xs text-center flex flex-col items-center relative shrink-0 select-none">

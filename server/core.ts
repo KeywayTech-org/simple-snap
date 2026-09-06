@@ -68,10 +68,12 @@ export async function analyzePhoto(
   }
   const data = await response.json();
   const rawText: string = data?.choices?.[0]?.message?.content || '';
+  // 剥离可能存在的 markdown 格式代码块
+  const cleanedText = rawText.replace(/```(?:json)?\s*([\s\S]*?)\s*```/g, '$1').trim();
   try {
-    return JSON.parse(rawText);
+    return JSON.parse(cleanedText);
   } catch {
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
     if (jsonMatch) return JSON.parse(jsonMatch[0]);
     throw new Error('解读模型未返回有效 JSON');
   }

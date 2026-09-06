@@ -181,7 +181,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Main Single-Screen Content Area (Exact 3 Screens) */}
-      <main className="flex-1 min-h-0 relative px-2 sm:px-6 py-2 sm:py-4 flex flex-col items-center overflow-y-auto overflow-x-hidden no-scrollbar">
+      <main className="flex-1 min-h-0 min-w-0 w-full relative px-2 sm:px-6 py-2 sm:py-4 flex flex-col items-center overflow-y-auto overflow-x-hidden no-scrollbar">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           {currentScreen === 1 && (
             <motion.div
@@ -191,7 +191,7 @@ export default function App() {
               initial="enter"
               animate="center"
               exit="exit"
-              className="w-full min-h-full flex flex-col justify-center my-auto"
+              className="w-full min-w-0 flex-1 min-h-0 flex flex-col justify-center"
             >
               <ZenUploadScreen
                 currentImage={currentImage}
@@ -212,7 +212,7 @@ export default function App() {
               initial="enter"
               animate="center"
               exit="exit"
-              className="w-full min-h-full flex flex-col justify-center my-auto"
+              className="w-full min-w-0 flex-1 min-h-0 flex flex-col justify-center"
             >
               <ZenStyleScreen
                 currentImage={currentImage}
@@ -232,7 +232,7 @@ export default function App() {
               initial="enter"
               animate="center"
               exit="exit"
-              className="w-full min-h-full flex flex-col justify-center my-auto"
+              className="w-full min-w-0 flex-1 min-h-0 flex flex-col justify-center"
             >
               <ZenGenerateScreen
                 isProcessing={isProcessing}

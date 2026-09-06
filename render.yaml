@@ -13,9 +13,9 @@ services:
         value: production
       # 非密钥配置（与 server/core.ts 默认值一致，显式声明便于调整）
       - key: LLM_BASE_URL
-        value: https://api.b.ai/v1
+        value: https://api.xkiro.com/v1
       - key: LLM_MODEL
-        value: qwen3.8-flash
+        value: minimax/minimax-m3:free
       - key: IMAGE_BASE_URL
         value: https://api.liangrekui.com
       - key: IMAGE_MODEL
