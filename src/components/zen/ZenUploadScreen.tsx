@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Upload, ArrowRight, RefreshCw } from 'lucide-react';
+import { Upload, ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
+import { compressImage } from '../../utils/imageCompressor';
 
 interface ZenUploadScreenProps {
   currentImage: string | null;
@@ -15,19 +16,31 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('请上传图片文件 (JPG, PNG, WebP 等)');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (typeof e.target?.result === 'string') {
-        onImageSelected(e.target.result);
-      }
-    };
-    reader.readAsDataURL(file);
+
+    try {
+      setIsCompressing(true);
+      // 客户端 Canvas 自动缩放与压缩（长边 ≤ 1920，JPEG 质量 0.85）
+      const result = await compressImage(file, { maxDimension: 1920, quality: 0.85 });
+      onImageSelected(result.dataUrl);
+    } catch (err) {
+      console.warn('图片优化降级至原始读取:', err);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (typeof e.target?.result === 'string') {
+          onImageSelected(e.target.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   return (
@@ -40,7 +53,24 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
         className="hidden"
       />
 
-      {currentImage ? (
+      {isCompressing ? (
+        /* Image Compressing / Optimizing State */
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="w-full aspect-[4/3] max-h-[40vh] min-h-[220px] bg-white border border-stone-300 p-8 flex flex-col items-center justify-center text-center shadow-sm"
+        >
+          <div className="w-12 h-12 rounded-full border border-stone-200 flex items-center justify-center text-stone-700 mb-3 bg-stone-50">
+            <Loader2 className="w-5 h-5 animate-spin" />
+          </div>
+          <p className="font-serif text-sm text-stone-900 tracking-wider mb-1">
+            正在优化图像画质与传输规格
+          </p>
+          <p className="font-serif text-xs text-stone-400 tracking-wider">
+            等比缩放至高清标准，消除上传延迟
+          </p>
+        </motion.div>
+      ) : currentImage ? (
         /* Image Preview State */
         <motion.div
           initial={{ opacity: 0, y: 10 }}

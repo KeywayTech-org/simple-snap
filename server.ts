@@ -67,8 +67,15 @@ app.post('/api/remix-stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders?.();
 
+  let isClosed = false;
+  req.on('close', () => {
+    isClosed = true;
+  });
+
   const sendEvent = (type: string, payload: any) => {
-    res.write(`data: ${JSON.stringify({ type, ...payload })}\n\n`);
+    if (!isClosed && !res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ type, ...payload })}\n\n`);
+    }
   };
 
   try {
@@ -160,6 +167,25 @@ app.post('/api/synthesize-prompt', async (req, res) => {
   } catch (error: any) {
     logger.error('HttpApi', `提示词分析失败: ${error?.message}`, error?.stack, traceId);
     return res.status(500).json({ error: error?.message || '提示词分析失败', traceId });
+  }
+});
+
+// 全局异常处理中间件（拦截客户端网络断开 request aborted 或体积超限等异常）
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err?.type === 'entity.too.large' || err?.status === 413) {
+    logger.warn('HttpApi', '上传内容超出限制 (413 Payload Too Large)');
+    if (!res.headersSent) {
+      return res.status(413).json({ error: '上传的图片体积过大，请在前端压缩后上传' });
+    }
+    return;
+  }
+  if (err?.code === 'ECONNRESET' || err?.type === 'request.aborted' || err?.message?.includes('request aborted')) {
+    logger.warn('HttpApi', '客户端连接提前中断 (request aborted)');
+    return;
+  }
+  logger.error('HttpApi', `服务请求异常: ${err?.message}`, err?.stack);
+  if (!res.headersSent) {
+    res.status(err?.status || 500).json({ error: err?.message || '服务器内部异常' });
   }
 });
 

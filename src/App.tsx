@@ -8,6 +8,7 @@ import { ToastProvider, useToast } from './components/ui/Toast';
 import { RemixResult, RemixStageInfo } from './types';
 import { STYLE_PRESETS } from './data/presets';
 import { clientLogger } from './utils/clientLogger';
+import { compressImage } from './utils/imageCompressor';
 import { AlertCircle } from 'lucide-react';
 
 function AppContent() {
@@ -108,7 +109,22 @@ function AppContent() {
     }, 150);
 
     try {
-      clientLogger.info('Network', '尝试发起 SSE 流式请求 /api/remix-stream');
+      let uploadImage = currentImage;
+      if (uploadImage && uploadImage.length > 2_000_000) {
+        clientLogger.info('Compression', '检测到较大数据体，执行二次兜底压缩', {
+          rawLength: uploadImage.length,
+        });
+        try {
+          const compressed = await compressImage(uploadImage, { maxDimension: 1920, quality: 0.85 });
+          uploadImage = compressed.dataUrl;
+        } catch (e) {
+          clientLogger.warn('Compression', '二次压缩失败，继续使用当前图', e);
+        }
+      }
+
+      clientLogger.info('Network', '尝试发起 SSE 流式请求 /api/remix-stream', {
+        payloadKb: Math.round((uploadImage?.length || 0) / 1024),
+      });
       const response = await fetch('/api/remix-stream', {
         method: 'POST',
         headers: {
@@ -116,7 +132,7 @@ function AppContent() {
           Accept: 'text/event-stream',
         },
         body: JSON.stringify({
-          image: currentImage,
+          image: uploadImage,
           stylePreset: selectedPresetId,
           aspectRatio: '3:4',
           traceId: initialTraceId,
