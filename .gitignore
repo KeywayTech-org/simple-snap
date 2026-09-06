@@ -10,3 +10,5 @@ logs/
 dist-worker/
 .dev.vars
 .wrangler/
+artifacts-*.png
+*.exe
