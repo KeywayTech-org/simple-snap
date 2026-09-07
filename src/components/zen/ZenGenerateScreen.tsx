@@ -86,16 +86,16 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
   const currentStepNumber = currentStage?.step || 1;
 
   return (
-    <div className="w-full max-w-xl min-w-0 mx-auto flex flex-1 min-h-0 flex-col justify-between py-2 sm:py-4 gap-3 sm:gap-5 px-2 sm:px-4">
+    <div className="w-full max-w-xl min-w-0 mx-auto flex flex-1 flex-col justify-between py-1 sm:py-3 gap-1.5 sm:gap-4 px-2 sm:px-4 min-h-full">
       {/* Title */}
-      <div className="text-center shrink-0">
-        <span className="stamp-seal text-[10px] sm:text-[11px] px-1 py-0.5 mb-2 inline-block font-serif select-none">
+      <div className="text-center shrink-0 flex flex-col items-center">
+        <span className="stamp-seal text-[9px] sm:text-[11px] px-1 py-0.5 mb-1 sm:mb-1.5 inline-block font-serif select-none">
           第三屏 · 赋印
         </span>
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-serif tracking-widest text-stone-900 font-normal">
+        <h2 className="text-lg sm:text-2xl md:text-3xl font-serif tracking-widest text-stone-900 font-normal leading-tight">
           {isProcessing ? '淬炼生成中' : '海报成图'}
         </h2>
-        <p className="text-xs sm:text-sm font-serif text-stone-600 mt-1 tracking-widest">
+        <p className="text-[11px] sm:text-sm font-serif text-stone-600 mt-0.5 tracking-widest leading-tight">
           {isProcessing
             ? (currentStage?.detail || '正按真实阶段流式制作艺术画报...')
             : '留白成章 · 纸本呈画'}
@@ -103,10 +103,10 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
       </div>
 
       {/* Main Center Canvas */}
-      <div className="flex-1 min-h-0 min-w-0 flex flex-col items-center justify-center w-full">
+      <div className="flex-1 min-h-[140px] sm:min-h-0 min-w-0 flex flex-col items-center justify-center w-full my-auto py-1 sm:py-2">
         {isProcessing ? (
           /* Loading State: Multi-stage Real Progress Box */
-          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-white p-5 sm:p-6 border border-stone-300 shadow-2xs flex flex-col items-center relative shrink-0 select-none">
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md max-h-full bg-white p-3.5 sm:p-6 border border-stone-300 shadow-2xs flex flex-col items-center relative min-h-0 select-none overflow-y-auto no-scrollbar">
             {/* Corner marks */}
             <div className="absolute top-2 left-2 w-3 h-3 border-t border-l border-stone-400" />
             <div className="absolute top-2 right-2 w-3 h-3 border-t border-r border-stone-400" />
@@ -114,7 +114,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
             <div className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-stone-400" />
 
             {/* Header Stage Tag */}
-            <div className="w-full flex items-center justify-between border-b border-stone-200 pb-2 mb-3">
+            <div className="w-full flex items-center justify-between border-b border-stone-200 pb-1.5 sm:pb-2 mb-2 sm:mb-3">
               <span className="stamp-seal text-[10px] px-1.5 py-0.5 font-serif">
                 {currentStage?.title || '墨韵淬炼'}
               </span>
@@ -124,7 +124,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
             </div>
 
             {/* 4 Real Stages Flow List */}
-            <div className="w-full space-y-2 mb-4 font-serif">
+            <div className="w-full space-y-1.5 sm:space-y-2 mb-3 sm:mb-4 font-serif">
               {STAGES_CONFIG.map((s) => {
                 const isDone = currentStepNumber > s.step;
                 const isCurrent = currentStepNumber === s.step;
@@ -133,7 +133,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
                 return (
                   <div
                     key={s.key}
-                    className={`flex items-center justify-between p-2 rounded-xs border transition-all text-xs ${
+                    className={`flex items-center justify-between p-1.5 sm:p-2 rounded-xs border transition-all text-xs ${
                       isCurrent
                         ? 'bg-stone-100 border-stone-900 text-stone-950 font-bold shadow-2xs'
                         : isDone
@@ -176,28 +176,28 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
         ) : result ? (
           /* Finished State: Art Poster with Mounting Frame */
           <motion.div
-            initial={{ opacity: 0, y: 14, scale: 0.985 }}
+            initial={{ opacity: 0, y: 12, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-white p-3 sm:p-4 border border-stone-300 shadow-sm flex flex-col items-center relative shrink-0"
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="w-auto max-w-xs sm:max-w-sm md:max-w-md max-h-full bg-white p-2.5 sm:p-4 border border-stone-300 shadow-sm flex flex-col items-center min-h-0 relative"
           >
-            {/* Fine mounting border */}
-            <div className="w-full max-h-[38vh] sm:max-h-[44vh] overflow-hidden bg-stone-100 border border-stone-200 flex items-center justify-center">
+            {/* Fine mounting border - Flexibly fills available space without overflowing */}
+            <div className="w-auto flex-1 min-h-[100px] sm:min-h-0 overflow-hidden bg-stone-100 border border-stone-200 flex items-center justify-center p-1">
               <img
                 src={result.outputImageUrl}
                 alt={result.title}
-                className="w-full h-auto max-h-[38vh] sm:max-h-[44vh] object-contain select-none shadow-2xs"
+                className="max-w-full max-h-full w-auto h-auto object-contain select-none shadow-2xs"
                 referrerPolicy="no-referrer"
               />
             </div>
 
             {/* Poster Header / Seal */}
-            <div className="w-full mt-2.5 pt-2 border-t border-stone-200 flex items-center justify-between gap-2 font-serif text-xs">
+            <div className="w-full mt-2 sm:mt-2.5 pt-1.5 sm:pt-2 border-t border-stone-200 flex items-center justify-between gap-2 font-serif text-xs shrink-0">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="font-bold text-stone-900 tracking-widest truncate min-w-0 whitespace-nowrap">
+                <span className="font-bold text-stone-900 tracking-widest truncate min-w-0">
                   {result.title}
                 </span>
-                <span className="text-[10px] text-stone-500 font-mono truncate min-w-0 whitespace-nowrap">
+                <span className="text-[10px] text-stone-500 font-mono truncate min-w-0 shrink-0">
                   {result.zineVolume}
                 </span>
               </div>
@@ -208,7 +208,7 @@ export const ZenGenerateScreen: React.FC<ZenGenerateScreenProps> = ({
       </div>
 
       {/* Bottom Actions */}
-      <div className="border-t border-stone-200/80 pt-3 flex flex-col items-center gap-2.5 shrink-0 w-full">
+      <div className="border-t border-stone-200/80 pt-2 sm:pt-3 flex flex-col items-center gap-1.5 sm:gap-2.5 shrink-0 w-full">
         {!isProcessing && result && (
           <>
             <button

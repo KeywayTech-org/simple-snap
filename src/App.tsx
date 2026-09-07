@@ -284,7 +284,7 @@ function AppContent() {
       </AnimatePresence>
 
       {/* Main Single-Screen Content Area (Exact 3 Screens) */}
-      <main className="flex-1 min-h-0 min-w-0 w-full relative px-2 sm:px-6 py-2 sm:py-4 flex flex-col items-center overflow-y-auto overflow-x-hidden no-scrollbar">
+      <main className="flex-1 min-h-0 min-w-0 w-full relative px-2 sm:px-6 py-1.5 sm:py-4 flex flex-col items-center overflow-y-auto overflow-x-hidden no-scrollbar">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           {currentScreen === 1 && (
             <motion.div
@@ -337,7 +337,7 @@ function AppContent() {
               initial="enter"
               animate="center"
               exit="exit"
-              className="w-full min-w-0 flex-1 min-h-0 flex flex-col justify-center"
+              className="w-full min-w-0 flex-1 min-h-0 flex flex-col"
             >
               <ZenGenerateScreen
                 isProcessing={isProcessing}
