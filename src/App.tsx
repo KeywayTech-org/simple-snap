@@ -284,7 +284,7 @@ function AppContent() {
       </AnimatePresence>
 
       {/* Main Single-Screen Content Area (Exact 3 Screens) */}
-      <main className="flex-1 min-h-0 min-w-0 w-full relative px-2 sm:px-6 py-1.5 sm:py-4 flex flex-col items-center overflow-y-auto overflow-x-hidden no-scrollbar">
+      <main className="flex-1 min-h-0 min-w-0 w-full relative px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:px-6 pt-2 sm:pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-6 flex flex-col items-center overflow-y-auto overflow-x-hidden no-scrollbar">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           {currentScreen === 1 && (
             <motion.div

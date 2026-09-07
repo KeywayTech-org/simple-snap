@@ -70,7 +70,7 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
         {/* Horizontal Scrolling Card Track */}
         <div
           ref={scrollContainerRef}
-          className="flex items-stretch justify-start md:justify-center gap-3 sm:gap-5 overflow-x-auto no-scrollbar px-1 sm:px-8 py-2.5 scroll-smooth w-full min-w-0"
+          className="flex items-stretch justify-start md:justify-center gap-3.5 sm:gap-5 overflow-x-auto no-scrollbar px-6 sm:px-8 py-3 scroll-smooth w-full min-w-0"
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {STYLE_PRESETS.map((preset: StylePreset, index: number) => {
@@ -81,17 +81,26 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
               <motion.div
                 key={preset.id}
                 id={`card-style-${preset.id}`}
-                className="w-52 sm:w-60 md:w-64 shrink-0"
+                className="w-[270px] sm:w-64 md:w-72 shrink-0"
                 style={{ scrollSnapAlign: 'center' }}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 + index * 0.06, duration: 0.45, ease: 'easeOut' }}
               >
                 <div
-                  onClick={() => onSelectPreset(preset.id)}
+                  onClick={() => {
+                    if (navigator.vibrate) {
+                      try {
+                        navigator.vibrate(12);
+                      } catch {
+                        // ignore
+                      }
+                    }
+                    onSelectPreset(preset.id);
+                  }}
                   className={`h-full w-full cursor-pointer transition-all duration-300 select-none flex flex-col justify-between p-4 sm:p-6 bg-white relative border ${
                     isSelected
-                      ? 'border-stone-950 shadow-md ring-1 ring-stone-950 -translate-y-1'
+                      ? 'border-stone-950 shadow-md ring-1 ring-stone-950 -translate-y-0.5'
                       : 'border-stone-300 hover:border-stone-500 shadow-2xs'
                   }`}
                 >
@@ -127,18 +136,18 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
                     {preset.name}
                   </h3>
 
-                  <p className="font-serif text-[11px] sm:text-xs text-stone-600 leading-relaxed tracking-wider mb-4">
+                  <p className="font-serif text-xs text-stone-600 leading-relaxed tracking-wider mb-4 min-h-[2.8rem]">
                     {preset.description}
                   </p>
                 </div>
 
                 {/* Bottom Status / Selection Marker */}
-                <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between text-xs font-serif">
-                  <span className="text-stone-600 text-[10px] sm:text-[11px] tracking-wider whitespace-nowrap">
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs font-serif">
+                  <span className="text-stone-600 text-xs tracking-wider whitespace-nowrap">
                     {isSelected ? '已选定此格' : '点击择定'}
                   </span>
                   <div
-                    className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
                       isSelected
                         ? 'border-stone-950 bg-stone-950 text-white'
                         : 'border-stone-400'
@@ -154,19 +163,19 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
         </div>
 
         {/* Subtle mobile swipe hint */}
-        <div className="md:hidden text-center mt-1">
-          <span className="text-[10px] font-serif text-stone-400 tracking-wider">
-            ← 左右滑动挑选风格 · 点击卡片选定 →
+        <div className="md:hidden text-center mt-2">
+          <span className="text-[11px] font-serif text-stone-500 tracking-wider">
+            ← 左右滑动浏览风格 · 点击选定 →
           </span>
         </div>
       </div>
 
       {/* Bottom Step Actions */}
-      <div className="border-t border-stone-200/80 pt-3 flex items-center justify-between gap-3 shrink-0 w-full">
+      <div className="border-t border-stone-200/80 pt-3.5 pb-1 flex items-center justify-between gap-3 shrink-0 w-full">
         <button
           type="button"
           onClick={onPrev}
-          className="px-3.5 sm:px-5 py-2 sm:py-2.5 border border-stone-300 hover:border-stone-400 text-stone-700 font-serif text-xs tracking-widest transition-colors flex items-center gap-1.5 shrink-0 whitespace-nowrap"
+          className="min-h-[44px] px-4 sm:px-5 py-2.5 border border-stone-300 hover:border-stone-400 active:bg-stone-100 text-stone-700 font-serif text-xs tracking-widest transition-colors flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>返回呈图</span>
@@ -176,7 +185,7 @@ export const ZenStyleScreen: React.FC<ZenStyleScreenProps> = ({
           id="btn-zen-start-generate"
           type="button"
           onClick={onStartRemix}
-          className="px-6 sm:px-10 py-2.5 sm:py-3 bg-stone-950 text-stone-100 hover:bg-stone-800 font-serif text-xs sm:text-sm tracking-widest shadow-md transition-all active:scale-[0.99] flex items-center gap-2 shrink-0 whitespace-nowrap"
+          className="min-h-[44px] px-6 sm:px-10 py-2.5 sm:py-3 bg-stone-950 text-stone-100 hover:bg-stone-800 font-serif text-xs sm:text-sm tracking-widest shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 shrink-0 whitespace-nowrap cursor-pointer"
         >
           <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>生成照片</span>

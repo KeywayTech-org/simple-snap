@@ -63,11 +63,8 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
           <div className="w-12 h-12 rounded-full border border-stone-200 flex items-center justify-center text-stone-700 mb-3 bg-stone-50">
             <Loader2 className="w-5 h-5 animate-spin" />
           </div>
-          <p className="font-serif text-sm text-stone-900 tracking-wider mb-1">
-            正在优化图像画质与传输规格
-          </p>
-          <p className="font-serif text-xs text-stone-400 tracking-wider">
-            等比缩放至高清标准，消除上传延迟
+          <p className="font-serif text-sm text-stone-900 tracking-wider">
+            优化图像中...
           </p>
         </motion.div>
       ) : currentImage ? (
@@ -78,20 +75,20 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="w-full bg-white p-4 border border-stone-300 shadow-sm flex flex-col items-center gap-4"
         >
-          <div className="w-full aspect-[4/3] max-h-[45vh] overflow-hidden bg-stone-100 border border-stone-200 flex items-center justify-center">
+          <div className="w-full aspect-[4/3] max-h-[42vh] overflow-hidden bg-stone-100 border border-stone-200 flex items-center justify-center p-1">
             <img
               src={currentImage}
               alt="Uploaded"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain select-none"
               referrerPolicy="no-referrer"
             />
           </div>
 
-          <div className="w-full flex items-center justify-between gap-3 pt-2 border-t border-stone-100">
+          <div className="w-full flex items-center justify-between gap-3 pt-3 border-t border-stone-100">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 border border-stone-300 hover:border-stone-500 text-stone-700 font-serif text-xs tracking-wider flex items-center gap-1.5 transition-colors"
+              className="min-h-[44px] px-4 py-2.5 border border-stone-300 hover:border-stone-500 active:bg-stone-50 text-stone-700 font-serif text-xs tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>重新选择</span>
@@ -101,9 +98,9 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
               id="btn-zen-upload-next"
               type="button"
               onClick={onNext}
-              className="px-6 py-2 bg-stone-900 hover:bg-stone-800 text-stone-100 font-serif text-xs sm:text-sm tracking-wider flex items-center gap-2 transition-colors cursor-pointer"
+              className="min-h-[44px] px-6 sm:px-8 py-2.5 bg-stone-900 hover:bg-stone-800 text-stone-100 font-serif text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm cursor-pointer"
             >
-              <span>下一步</span>
+              <span>下一步 · 择格</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

@@ -19,12 +19,19 @@
   *, ::before, ::after {
     box-sizing: border-box;
   }
+  :root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+  }
   html, body, #root {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     font-family: var(--font-serif);
@@ -35,7 +42,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* 键盘可达性：焦点环统一为朱砂色 */
+  /* 键盘与触屏可达性：焦点环统一为朱砂色 */
   :focus-visible {
     outline: 1.5px solid var(--color-cinnabar);
     outline-offset: 2px;
@@ -51,11 +58,9 @@
   font-family: var(--font-serif);
 }
 
-/* 宣纸微纹理 */
+/* 宣纸自然底色 */
 .canvas-paper {
   background-color: var(--color-paper);
-  background-image: radial-gradient(rgba(28, 25, 23, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 /* 中式朱砂印章样式 */

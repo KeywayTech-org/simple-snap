@@ -106,8 +106,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
       {children}
 
-      {/* Floating Toasts Container */}
-      <div className="fixed top-4 right-4 sm:right-6 z-50 flex flex-col gap-2.5 max-w-xs sm:max-w-sm w-full pointer-events-none">
+      {/* Floating Toasts Container - Safely positioned below Dynamic Island */}
+      <div className="fixed top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] left-3 right-3 sm:left-auto sm:right-6 z-50 flex flex-col gap-2.5 max-w-sm w-auto sm:w-full pointer-events-none mx-auto sm:mx-0">
         <AnimatePresence>
           {toasts.map((toast) => (
             <motion.div
