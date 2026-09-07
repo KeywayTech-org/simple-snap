@@ -67,16 +67,34 @@ app.post('/api/remix-stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders?.();
 
-  let isClosed = false;
-  req.on('close', () => {
-    isClosed = true;
+  let clientDisconnected = false;
+  res.on('close', () => {
+    if (!res.writableEnded) {
+      clientDisconnected = true;
+      logger.warn('HttpApi', '客户端在流传输完成前断开了连接', null, traceId);
+    }
   });
 
   const sendEvent = (type: string, payload: any) => {
-    if (!isClosed && !res.writableEnded) {
-      res.write(`data: ${JSON.stringify({ type, ...payload })}\n\n`);
+    if (!clientDisconnected && !res.writableEnded && !res.destroyed) {
+      try {
+        res.write(`data: ${JSON.stringify({ type, ...payload })}\n\n`);
+      } catch (err: any) {
+        logger.warn('HttpApi', `SSE写入失败: ${err?.message}`, null, traceId);
+      }
     }
   };
+
+  // 定时发送 SSE 注释保活帧，防止反向代理和 CDN 掐断空闲通道
+  const keepAliveTimer = setInterval(() => {
+    if (!clientDisconnected && !res.writableEnded && !res.destroyed) {
+      try {
+        res.write(': keepalive\n\n');
+      } catch {
+        // 忽略保活写入异常
+      }
+    }
+  }, 5000);
 
   try {
     const result = await remixPhoto(
@@ -100,6 +118,8 @@ app.post('/api/remix-stream', async (req, res) => {
       traceId,
     });
     res.end();
+  } finally {
+    clearInterval(keepAliveTimer);
   }
 });
 
