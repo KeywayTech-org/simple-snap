@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Upload, ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
+import { useToast } from '../ui/Toast';
 
 interface ZenUploadScreenProps {
   currentImage: string | null;
@@ -14,13 +15,14 @@ export const ZenUploadScreen: React.FC<ZenUploadScreenProps> = ({
   onImageSelected,
   onNext,
 }) => {
+  const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
 
   const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('请上传图片文件 (JPG, PNG, WebP 等)');
+      toast.error('文件格式不符', '请上传图片文件 (JPG, PNG, WebP 等)');
       return;
     }
 

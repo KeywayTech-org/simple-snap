@@ -41,8 +41,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const showToast = useCallback(
     (toast: Omit<ToastItem, 'id'>) => {
+      // 需求限制：Toast 只在出现问题/异常时显示（限定 error 类型）
+      if (toast.type !== 'error') {
+        return;
+      }
+
       const id = `toast_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      const duration = toast.duration ?? (toast.type === 'error' ? 5000 : 3500);
+      const duration = toast.duration ?? 5000;
 
       setToasts((prev) => [...prev.slice(-3), { ...toast, id }]);
 

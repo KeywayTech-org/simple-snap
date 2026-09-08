@@ -47,14 +47,13 @@ function AppContent() {
     setCurrentStage(null);
     setErrorMessage(null);
     goToScreen(1);
-    toast.info('已重置画布', '可重新选取新照片进行赋印');
   };
 
   // Screen 1 -> Screen 2
   const handleNextFromUpload = () => {
     if (!currentImage) {
       setErrorMessage('请先选取一张照片');
-      toast.warning('请先选取照片', '点击虚线区域或拖拽图片即可');
+      toast.error('请先选取照片', '点击虚线区域或拖拽图片即可');
       return;
     }
     setErrorMessage(null);
@@ -67,7 +66,6 @@ function AppContent() {
     setSelectedPresetId(presetId);
     const preset = STYLE_PRESETS.find((p) => p.id === presetId);
     clientLogger.info('UserAction', `选定风格预设: ${preset?.name || presetId}`);
-    toast.info(`已选风格：${preset?.name || presetId}`, preset?.description);
   };
 
   // 真实阶段流式生成执行
@@ -93,7 +91,6 @@ function AppContent() {
     });
 
     clientLogger.info('Remix', '开始全流程海报淬炼', { preset: selectedPresetId, traceId: initialTraceId });
-    toast.info('已开启海报赋印', '正在流式协同大模型分析与生图');
     goToScreen(3);
 
     // 辅助：平滑逼近目标百分比（在收到后端真实阶段更新前，在当前阶段区间内微缓动）
@@ -207,7 +204,6 @@ function AppContent() {
 
       setCurrentResult(newResult);
       clientLogger.info('Success', '海报生成全部完成', { title: newResult.title, duration: newResult.durationSeconds });
-      toast.success('海报淬炼赋印完成', '已融合所选风格美学，可下载或再作一幅');
     } catch (err: any) {
       clientLogger.error('RemixFailed', `生成流程异常: ${err?.message}`, err);
       if (progressAnimationRef.current) clearInterval(progressAnimationRef.current);
@@ -302,7 +298,6 @@ function AppContent() {
                   setCurrentImage(img);
                   setErrorMessage(null);
                   clientLogger.info('UserAction', '用户成功载入照片');
-                  toast.success('照片载入就绪', '已成功识别源图，可点击下一步择格');
                 }}
                 onNext={handleNextFromUpload}
               />
